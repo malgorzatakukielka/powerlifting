@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Statistcis")
-st.title("# Powerlifting Statistics")
+st.set_page_config(page_title="Statistcis", layout="wide")
+st.title("Powerlifting Statistics")
 
 
 df = pd.read_csv("powerlifting_cleaned.csv", low_memory=False)
@@ -68,17 +68,37 @@ if sex and weight_class_type and weight_class and selected_age_class:
         (df['WeightClass'] == weight_class) &
         (df[age_column] == selected_age_class)
     ]
+    st.write(f"{sex} lifters – {weight_class} ({weight_class_type}) in age class {selected_age_class}")
+    st.write(f"Number of lifters: {len(filtered_df)}")
 
     if not filtered_df.empty:
-        fig = px.box(
-            filtered_df,
-            x="Lift",
-            y="ResultKg",
-            points=None,
-            title=f"{sex} lifters – {weight_class} ({weight_class_type})"
-        )
-        fig.update_layout(xaxis_title="Lift Type", yaxis_title="Result (kg)", boxmode="group")
-        st.plotly_chart(fig, use_container_width=True)
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            lifts_df = filtered_df[filtered_df['Lift'] != 'Total']
+            fig_lifts = px.box(
+                lifts_df,
+                x="Lift",
+                y="ResultKg",
+                points=None,
+            )
+            fig_lifts.update_layout(xaxis_title="", yaxis_title="Result (kg)", boxmode="group")
+            st.plotly_chart(fig_lifts, use_container_width=True)
+        with col2:
+            total_df = filtered_df[filtered_df['Lift'] == 'Total']
+            fig_total = px.box(
+                total_df,
+                x="Lift",
+                y="ResultKg",
+                points=None,
+            )
+            fig_total.update_layout(xaxis_title = "", yaxis_title="Result (kg)", boxmode="group")
+            st.plotly_chart(fig_total, use_container_width=True)
+        st.subheader("Records:")
+
+        for lift in ["Squat", "Bench Press", "Deadlift", "Total"]:
+            top_lift = filtered_df[filtered_df["Lift"] == lift]
+            top_lift = top_lift[["Name", "ResultKg", "Date"]].sort_values(by="ResultKg", ascending=False).iloc[0]
+            st.write(f"**{lift}** — {top_lift['Name']} : {top_lift['ResultKg']}kg ({top_lift['Date']})")
     else:
         st.warning("No data available for the selected filters.")
 else:
