@@ -120,5 +120,24 @@ print(powerlifting[['Sex', 'BodyweightKg', 'IPF_WeightClass', 'Traditional_Weigh
 powerlifting = powerlifting.drop(columns = ['MeetState','State', 'Squat4Kg', 'Bench4Kg', 'Deadlift4Kg'])
 #%% check for missing values
 print(powerlifting.isna().sum().sort_values(ascending=False))
-# %% write to csv
+print(powerlifting.columns)
+
+
+# %%
+# Pivot the weight classes columns to long format
+long_data = powerlifting.melt(
+    id_vars=['Name', 'Sex', 'Event', 'Equipment', 'Age', 'AgeClass',
+       'BirthYearClass', 'Division', 'BodyweightKg', 'WeightClassKg',
+       'Squat1Kg', 'Squat2Kg', 'Squat3Kg', 'Best3SquatKg', 'Bench1Kg',
+       'Bench2Kg', 'Bench3Kg', 'Best3BenchKg', 'Deadlift1Kg', 'Deadlift2Kg',
+       'Deadlift3Kg', 'Best3DeadliftKg', 'TotalKg', 'Place', 'Dots', 'Wilks',
+       'Glossbrenner', 'Goodlift', 'Tested', 'Country', 'Federation',
+       'ParentFederation', 'Date', 'MeetCountry', 'MeetTown', 'MeetName',
+       'Sanctioned'],
+    value_vars=['IPF_WeightClass', 'Traditional_WeightClass'],
+    var_name='WeightClassType',
+    value_name='WeightClass'
+)
+
+# %%
 powerlifting.to_csv('powerlifting_cleaned.csv', index=False)
