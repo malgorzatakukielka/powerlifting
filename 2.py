@@ -1,0 +1,74 @@
+#%% imports
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+#%% data loading
+df = pd.read_csv('powerlifting_cleaned.csv', low_memory=False)
+print(df[['Name', 'Best3SquatKg', 'Best3BenchKg', 'Best3DeadliftKg', 'TotalKg']].head())
+
+# %% ratio calc
+df= df.sort_values(by='TotalKg', ascending=False).drop_duplicates(subset='Name')
+def calculate_ratios(df):
+    df['Squat Ratio'] = df['Best3SquatKg'] / df['TotalKg']
+    df['Bench Press Ratio'] = df['Best3BenchKg'] / df['TotalKg']
+    df['Deadlift Ratio'] = df['Best3DeadliftKg'] / df['TotalKg']
+    return df
+calculate_ratios(df)
+# %% filter
+df_female = df[df['Sex'] == 'F'][['Name', 'Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio']].dropna()
+df_male = df[df['Sex'] == 'M'][['Name', 'Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio']].dropna()
+
+#%% sklearn imports
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+# %% scaling
+X1 = df_female[['Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio']]
+X2 = df_male[['Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio']]
+scaler = StandardScaler()
+X1_scaled = scaler.fit_transform(X1)
+X2_scaled = scaler.fit_transform(X2)
+
+#%% clustering
+def k_means_clust(scaled_df) :
+    wcss = []
+    shilhouette_scores = []
+    for k in range(2, 11):
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(scaled_df)
+        wcss.append(kmeans.inertia_)
+        shilhouette_scores.append(silhouette_score(scaled_df, kmeans.labels_))
+    return wcss, shilhouette_scores
+
+def plot_wcss(wcss, shilhouette_scores):
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.plot(range(2, 11), wcss, marker='o')
+    plt.title('WCSS vs Number of Clusters')
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('WCSS')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(range(2, 11), shilhouette_scores, marker='o')
+    plt.title('Silhouette Score vs Number of Clusters')
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('Silhouette Score')
+
+    plt.tight_layout()
+    plt.show()
+
+# %% women
+k_means_clust(X1_scaled)
+plot_wcss(*k_means_clust(X1_scaled)) #decided on 6 clusters
+
+# %% men
+k_means_clust(X2_scaled)
+plot_wcss(*k_means_clust(X2_scaled)) #to decide whether to use 3 or 5 clusters
+
+# %% assign clusters
+def assign_clusters(df, scaled_df, n_clusters):
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    df['Cluster'] = kmeans.fit_predict(scaled_df)
+    return df
+assign_clusters(df_female, X1_scaled, 6)

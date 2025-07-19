@@ -5,12 +5,26 @@ import seaborn as sns
 
 #%% data loading
 powerlifting = pd.read_csv('openpowerlifting.csv', low_memory=False)
-# %%
-powerlifting = powerlifting[(powerlifting['Equipment'] == 'Raw') & 
-                            (powerlifting['TotalKg'] > 0) & 
-                            (powerlifting['Event'] == 'SBD') &
-                            (powerlifting['Country'] == 'Poland')]
-print(powerlifting)
+
+#%% polish data fix
+import re
+
+polish = "[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]"
+
+powerlifting = powerlifting[
+    (powerlifting['Equipment'] == 'Raw') &
+    (powerlifting['TotalKg'] > 0) &
+    (powerlifting['Event'] == 'SBD') &
+    (
+        (powerlifting['Country'] == 'Poland') |  # country == Poland
+        (
+            powerlifting['Country'].isna() &  # if country is NaN check if name contains polish characters and meetcountry is Poland
+            powerlifting['Name'].str.contains(polish, regex=True, na=False) &  
+            (powerlifting['MeetCountry'] == 'Poland')
+        )
+    )
+]
+print(powerlifting.loc[powerlifting['Country'].isna(), 'Name'].to_list())
 # %% weightclasses female
 #IPF
 def assign_ipf_class(weight, sex):
