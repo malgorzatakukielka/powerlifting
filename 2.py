@@ -15,8 +15,8 @@ def calculate_ratios(df):
     return df
 calculate_ratios(df)
 # %% filter
-df_female = df[df['Sex'] == 'F'][['Name', 'Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio']].dropna()
-df_male = df[df['Sex'] == 'M'][['Name', 'Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio']].dropna()
+df_female = df[df['Sex'] == 'F'][['Name', 'Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio', 'Dots']].dropna()
+df_male = df[df['Sex'] == 'M'][['Name', 'Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio', 'Dots']].dropna()
 
 #%% sklearn imports
 from sklearn.preprocessing import StandardScaler
@@ -24,8 +24,8 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
 # %% scaling
-X1 = df_female[['Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio']]
-X2 = df_male[['Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio']]
+X1 = df_female[['Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio', 'Dots']]
+X2 = df_male[['Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio', 'Dots']]
 scaler = StandardScaler()
 X1_scaled = scaler.fit_transform(X1)
 X2_scaled = scaler.fit_transform(X2)
@@ -60,15 +60,33 @@ def plot_wcss(wcss, shilhouette_scores):
 
 # %% women
 k_means_clust(X1_scaled)
-plot_wcss(*k_means_clust(X1_scaled)) #decided on 6 clusters
+plot_wcss(*k_means_clust(X1_scaled)) #decided on 4 clusters
 
 # %% men
 k_means_clust(X2_scaled)
-plot_wcss(*k_means_clust(X2_scaled)) #to decide whether to use 3 or 5 clusters
+plot_wcss(*k_means_clust(X2_scaled)) #again, decided on 4 clusters
 
 # %% assign clusters
 def assign_clusters(df, scaled_df, n_clusters):
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     df['Cluster'] = kmeans.fit_predict(scaled_df)
     return df
-assign_clusters(df_female, X1_scaled, 6)
+assign_clusters(df_female, X1_scaled, 4)
+
+#%% women clusters analysis
+variables = ['Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio', 'Dots']
+
+def get_cluster_stats(df, column):
+    return df.groupby('Cluster')[column].agg(
+        Mean='mean',
+        Median='median',
+        Std='std',
+        Min='min',
+        Q1=lambda x: x.quantile(0.25),
+        Q3=lambda x: x.quantile(0.75),
+        Max='max'
+    ).round(2)
+
+for var in variables:
+    print(f"\n===== {var} =====")
+    print(get_cluster_stats(df_female, var))
