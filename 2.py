@@ -72,6 +72,7 @@ def assign_clusters(df, scaled_df, n_clusters):
     df['Cluster'] = kmeans.fit_predict(scaled_df)
     return df
 assign_clusters(df_female, X1_scaled, 4)
+assign_clusters(df_male, X2_scaled, 4)
 
 #%% women clusters analysis
 variables = ['Squat Ratio', 'Bench Press Ratio', 'Deadlift Ratio', 'Dots']
@@ -86,7 +87,12 @@ def get_cluster_stats(df, column):
         Q3=lambda x: x.quantile(0.75),
         Max='max'
     ).round(2)
-
+#%% print cluster stats - women
 for var in variables:
     print(f"\n===== {var} =====")
     print(get_cluster_stats(df_female, var))
+
+#%% print cluster stats - men
+for var in variables:
+    print(f"\n===== {var} =====")
+    print(get_cluster_stats(df_male, var))
