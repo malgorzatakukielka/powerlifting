@@ -92,7 +92,19 @@ for var in variables:
     print(f"\n===== {var} =====")
     print(get_cluster_stats(df_female, var))
 
+# cluster explanation - women
+# Cluster 0: Strong deadlift, moderate squat and bench press, moderate dots - Deadlift specialists
+# Cluster 1: Strong bench press, moderate squat, weaker deadlift, moderate dots - Bench Press specialists
+# Cluster 2: Strong SBD, highest dots - All-rounders
+# Cluster 3: Strong deadlift, lower squat and bench press, moderate dots - Elite Deadlifters
+
 #%% print cluster stats - men
 for var in variables:
     print(f"\n===== {var} =====")
     print(get_cluster_stats(df_male, var))
+
+# cluster explanation - men
+# Cluster 0: Strong benchpress and deadlift, moderate squat, modeate dots - Bench Press specialists
+# Cluster 1: Well-rounded lifters, strong SBD, modearte-high dots - Well-rounded mid-level lifters
+# Cluster 2: Highest Dots, strong SBD, moderate ratios - Elite All-rounders
+# Cluster 3: Strong deadlift, lower squat and bench press, moderate dots - Deadlift specialists
